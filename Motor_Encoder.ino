@@ -38,8 +38,6 @@ void intro() {                                           //Intro function. Tells
   Serial.println("Press 2 to move the motor forward.");
   delay(1000);
   Serial.println("Press 3 to move the motor in reverse.");
-  delay(1000);
-  //Serial.println("Press 4 to enter motor speed.");
   delay(3000);
 
 }
@@ -53,15 +51,15 @@ void motor_forward() {                         //Function to move our motor forw
     delay(10);
     int runTime = Serial.parseInt();          //Set the variable tunTime equal to the user's input.
 
-    if (runTime == 0) {
-      motor_forward();
+    if (runTime == 0) {                       //Solves issue where 0 was being seen as user input before the user had a chance to enter an input.
+      motor_forward();                        //Run motor_forward() function again
     }
     else {
       Serial.println(runTime);
     digitalWrite(bridgeEnable, HIGH);         //H bridge enable on
     digitalWrite(controlPin1, HIGH);          //Pin1 high, Pin2 low. Motor will spin forward
     digitalWrite(controlPin2, LOW);
-    delay(runTime);
+    delay(runTime/15);                        //Delay's in run time because of Interrupt function. Dividing time by 15 seems to provide decent repeastability.
     digitalWrite(bridgeEnable, LOW);          //Turn off enable to H bridge to conserve power. Turn off other inputs to motor.
     digitalWrite(controlPin1, LOW);
     digitalWrite(controlPin2, LOW);
@@ -78,7 +76,7 @@ void motor_backwards() {                      //Function to move our motor backw
     int runTime = Serial.parseInt();          //Set the variable tunTime equal to the user's input.
 
      if (runTime == 0) {                      //Solves issue where 0 was being seen as user input before the user had a chance to enter an input.
-      motor_forward();                        //Run motor_forward() function again
+      motor_backwards();                      //Run motor_backwards() function again
     }
     else {
       Serial.println(runTime);
@@ -87,7 +85,7 @@ void motor_backwards() {                      //Function to move our motor backw
     digitalWrite(bridgeEnable, HIGH);
     digitalWrite(controlPin1, LOW);          //Pin1 low, Pin2 high. Motor will spin backwards
     digitalWrite(controlPin2, HIGH);
-    delay(runTime);
+    delay(runTime/15);                       //Delay's in run time because of Interrupt function. Dividing time by 15 seems to provide decent repeastability.
     digitalWrite(bridgeEnable, LOW);         //Turn off enable to H bridge to conserve power. Turn off other inputs to motor.
     digitalWrite(controlPin1, LOW);
     digitalWrite(controlPin2, LOW);
@@ -101,15 +99,6 @@ void encoder_read(){                        //Function to read out encoder count
   Serial.println((count*(45.00/2.00)));     //Converion function for counts to degrees.
   delay(4000);
 }
-
-void motor_speed(){
-  
-  if (Serial.available()){
-
-    int motorSpeed = Serial.parseInt();                //Sets the motor speed to whatever the user input is.
-  }
-}
-
 
 void encoder_phaseB(){
   if (digitalRead(encPin2) == HIGH){      //If phase B output from encoder is high and Phase A output from encoder is high
