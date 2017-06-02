@@ -1,0 +1,179 @@
+const int rdcPin0 = 22;                     //Resolver to Digital Converter Input pins
+const int rdcPin1 = 23;
+const int rdcPin2 = 24;
+const int rdcPin3 = 25;
+const int rdcPin4 = 26;
+const int rdcPin5 = 27;
+const int rdcPin6 = 28;
+const int rdcPin7 = 29;
+const int rdcPin8 = 30;
+const int rdcPin9 = 31;
+const int rdcPin10 = 32;
+const int rdcPin11 = 33;
+const int rdcPin12 = 34;
+const int rdcPin13 = 35;
+const int rdcPin14 = 36;
+const int rdcPin15 = 37;
+
+const int rdcWR = 38;
+const int rdcRD = 39;
+const int rdcA0 = 40;
+const int rdcA1 = 41;
+const int rdcSample = 42;
+const int rdcCS = 43;
+
+int binary_Read_Out = 0000000000000000;
+byte output = B00000000;
+float step_Conversion;
+float degree_Conversion;
+
+void setup() {
+pinMode(rdcA0, OUTPUT);              //Set pins connected to RCD to output a digitial signal
+pinMode(rdcA1, OUTPUT);
+pinMode(rdcWR, OUTPUT);
+pinMode(rdcRD, OUTPUT);
+pinMode(rdcSample, OUTPUT);
+pinMode(rdcCS, OUTPUT);
+
+
+for (int rdc = 22; rdc < 38; rdc++) {
+  pinMode(rdc, OUTPUT);
+}
+
+digitalWrite(rdcWR, HIGH);              //Set RCD pins RD/WR/Sample HIGH as default
+digitalWrite(rdcRD, HIGH);
+digitalWrite(rdcSample, HIGH);
+digitalWrite(rdcCS, LOW);
+
+Serial.begin(9600);
+}
+
+void RDC_Readout(){                                    //Function that will read the digital input from the 16 bits coming from the RDC and assign them to "binary_Read_Out"
+  digitalWrite(rdcA0, LOW);
+  digitalWrite(rdcA1, LOW);
+  
+  digitalWrite(rdcWR, HIGH);
+  digitalWrite(rdcRD, HIGH);
+  digitalWrite(rdcSample, HIGH);
+  delay(1);
+  digitalWrite(rdcSample, LOW);
+  delay(1);
+  digitalWrite(rdcSample, HIGH);
+  delay(1);
+  digitalWrite(rdcRD, LOW);
+
+  
+  int y = 22;
+  for (int x = 0; x < 16; x++){                      //Iterates through pins 22 to 37 and writes them to the binary_Read_Out number
+    pinMode(y, INPUT);                                  //Flips I/O pins to input (receive) signal
+    bitWrite(binary_Read_Out, x, digitalRead(y++));     //Runs bitwrite function which overwrites "binary_Read_Out" variable with a 1 if input is high and a 0 if input is low
+      }
+
+  
+  Serial.print("Position readout from Resolver: ");
+  Serial.print(binary_Read_Out);
+  Serial.println(" counts.");
+
+
+  float degree_Conversion_Half = binary_Read_Out/182.04167;					//When using a 65535 count resolver, this converts counts to degrees by Dividing counts by 182.04167 counts per degree
+  
+  float degree_Conversion = (degree_Conversion_Half + 180);					//Use if counts on the resolver run from -32767 to +32767 instead of 0 to 65535. This allows you to show degrees as 0 to 360 instead of -180 to 180
+  
+
+  Serial.print("Position readout from Resolver: ");
+  Serial.print(degree_Conversion);
+  Serial.println(" degrees.");
+
+  digitalWrite(rdcRD, HIGH);
+  
+}
+
+
+void excitationWrite(){          //Write the EXC FCW word to RCD to change EXC frequency
+    digitalWrite(rdcA0, HIGH);
+    digitalWrite(rdcA1, HIGH);
+  
+    byte address = B10001001;     //EXC address on RCD
+    int excite_Array[8] = {1,0,0,0,1,0,0,1};
+  
+    int b = 22;
+    
+    for (int z = 0; z < 8; z++){      //loop through 
+      pinMode(b, OUTPUT);                         //Set pins to output
+      digitalWrite(b++, excite_Array[z]);         //Output binary from array to corresponding pins
+      Serial.print("b value is : ");              //Print out
+      Serial.println(excite_Array[z]);            //Value from array that is assigned to pins
+      }
+
+    digitalWrite(rdcWR, LOW);        //This low-high change pushes the data to the RCD registers
+    delay(1);
+    digitalWrite(rdcWR, HIGH);
+    delay(1);
+    
+    byte rcdFCW = B0101000;         //Sets EXC frequency to 2.5KHz
+    int FCW_Array[8] = {0,1,0,1,0,0,0,0};   //2.5kHz frequency is 10 in binary 
+    Serial.println("FCW is: ");
+    Serial.println(rcdFCW);
+    delay(500);
+    int c = 22;
+    
+    for (int z = 0; z < 8; z++){                  //loop through each pin
+      pinMode(c, OUTPUT);                         //Turn each pin to output
+      digitalWrite(c++, FCW_Array[z]);            //Write to each pin from array
+      Serial.print("c value is : ");              //Print out
+      Serial.println(FCW_Array[z]);               //Value found in array
+      
+    }
+    digitalWrite(rdcWR, LOW);        //This low-high change pushes the data to the RCD registers
+    delay(1);
+    digitalWrite(rdcWR, HIGH);
+    delay(1);
+    delay(3000);
+
+}
+
+
+
+
+void readExcitation() {
+  digitalWrite(rdcA0, HIGH);
+  digitalWrite(rdcA1, HIGH);
+  int excite_Array[8] = {1,0,0,1,0,0,0,1};
+  byte address = B10010001;     //EXC address on RCD
+  int b = 22;
+
+  for (int z = 0; z < 8; z++){
+    pinMode(b, OUTPUT);                         //Set pins to output
+    digitalWrite(b++, excite_Array[z]);         //Output binary from array to corresponding pins
+    Serial.print("b value is : ");              //Print out
+    Serial.println(excite_Array[z]);            //Value from array that is assigned to pins
+    }
+     
+    digitalWrite(rdcWR, LOW);        //This low-high change pushes the data to the RCD registers
+    delay(1);
+    digitalWrite(rdcWR, HIGH);
+    delay(1);
+
+  
+  digitalWrite(rdcRD, LOW);
+  delay(1);
+  
+  for (int y = 22; y < 30; y++){
+    pinMode(y, INPUT);                                  //Flips I/O pins to input (receive) signal
+    int value = digitalRead(y);         //Output binary from array to corresponding pins
+    Serial.print("y value is : ");              //Print out
+    Serial.println(value);            //Value from array that is assigned to pins
+    
+      }
+
+  int y = 22;
+  for (int x = 0; x < 8; x++){                      //Iterates through pins 22 to 37 and writes them to the binary_Read_Out number
+      bitWrite(binary_Read_Out, x, digitalRead(y++));}     //Runs bitwrite function which overwrites "binary_Read_Out" variable with a 1 if input is high and a 0 if input is low
+  Serial.print("Excitation read out from resolver: ");
+  Serial.println(binary_Read_Out);
+  
+  delay(1);
+  digitalWrite(rdcRD, HIGH);
+  delay(3000);
+
+}
