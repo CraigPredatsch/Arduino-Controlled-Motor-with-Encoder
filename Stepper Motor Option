@@ -1,0 +1,66 @@
+/* This is a script that will utilize a stepper motor. It can be combined with
+either the resolver functions, or the encoder functions seen in this repository.
+*/
+
+#include <Stepper.h>
+
+const int controlPin1 = 2;                 //Outputs to H-Bridges. Connect to motors
+const int controlPin2 = 3;
+const int controlPin3 = 4;
+const int controlPin4 = 5;
+
+const int HEnablePin1 = 6;                    //H-Bridge Enables - Fairly sure these are always powered on
+const int HEnablePin2 = 7;
+
+const int stepsPerRevolution = 200;        //Number of steps per revolution in the motor
+
+
+
+Stepper motor1(stepsPerRevolution, controlPin1, controlPin2, controlPin3, controlPin4);     //Initialize motor with pins connected to H-Bridge
+
+void setup() {
+  // put your setup code here, to run once:
+
+pinMode(controlPin1, OUTPUT);              //Set pins connected to H-Bridge to output a digitial signal
+pinMode(controlPin2, OUTPUT);
+pinMode(controlPin3, OUTPUT);
+pinMode(controlPin4, OUTPUT);
+pinMode(HEnablePin1, OUTPUT);
+pinMode(HEnablePin2, OUTPUT);
+
+Serial.begin(9600);
+motor1.setSpeed(3);                        //Set speed to 3 rotations per minute.
+
+}
+
+void motor_Movement(){
+
+  delay(500);
+      
+  if (Serial.available()){                            //If Serial input comes from computer
+    
+    digitalWrite(HEnablePin1, HIGH);                  //Turns on Enable Voltage
+    digitalWrite(HEnablePin2, HIGH);
+    delay(10);
+    int steps = Serial.parseInt();                    //steps = input integer value
+    Serial.println("You have enetered the following number of steps: ");
+    delay(250);
+    Serial.println(steps);                            //Print input entered from computer. Conrfirms that Arduino received and comprehended user input.
+    delay(250);
+    motor1.step(steps);                               //Move motor by integer entered to represent variable "steps"
+    delay(250);                                       //Pause to ensure I don't send too many commands too quickly to the Arduino
+    digitalWrite(HEnablePin1, LOW);                   //Turns on Enable Voltage
+    digitalWrite(HEnablePin2, LOW);
+    delay(10);      
+ }
+ else{
+  motor_Movement();
+ }
+}
+
+void loop() {
+
+  Serial.println("Please enter the number of steps you would like to move.");
+  motor_Movement();
+  
+  }
