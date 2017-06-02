@@ -1,3 +1,8 @@
+/* This standalone script can be used when working with a motor + resolver. This function utilizes an Arduino Mega, a resolver, and the
+Analog Devices Eval Board for the ADS2S1210 resolver to digital converter. The functions shown here are to read position data from the
+resolver, write an excitation frequency to the resolver, and read back the excitation frequency that is being sent to the resolver.
+*/
+
 const int rdcPin0 = 22;                     //Resolver to Digital Converter Input pins
 const int rdcPin1 = 23;
 const int rdcPin2 = 24;
